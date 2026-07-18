@@ -1,6 +1,8 @@
 # Pipelined Commands
 
-PostMVC-style **command map** for Unity: bind a signal to a pipeline of commands — sequence or parallel, `Retain` / `Release`, pooling, and optional complete / break / fail signals.
+Unity package for **command pipelines** driven by Zenject signals (PostMVC-style).
+
+Bind a signal type to a chain of commands. Run steps in **sequence** or **parallel**. Support **async** steps via `Retain` / `Release` / `Fail` / `Break`. Optional pooling and complete / break / fail follow-up signals.
 
 | | |
 |---|---|
@@ -8,64 +10,52 @@ PostMVC-style **command map** for Unity: bind a signal to a pipeline of commands
 | **Assembly** | `PipelinedCommands` |
 | **Namespace** | `PipelinedCommands` |
 | **Unity** | 2021.3+ |
+| **License** | MIT |
+| **Latest** | [v0.1.2](https://github.com/KeybladerV/unity-pipelined-commands/releases/tag/v0.1.2) |
 
 ---
 
-## Peer dependency: Zenject
+## Requirements
 
-This package **does not ship or pin** Zenject / Extenject.
+| | |
+|---|---|
+| **Zenject** (or Extenject / fork) | **Required.** Asmdef assembly name must be `Zenject`. This package does not ship or pin DI. |
+| **UniTask** (`com.cysharp.unitask`) | **Optional.** Only for `DelaySecondsCommand` (assembly `PipelinedCommands.UniTask`). |
 
-It only needs a host project that already provides the **`Zenject` assembly** (the usual asmdef name for stock Zenject, Extenject, and most forks). Commands talk to Zenject’s **`SignalBus`** and **`DiContainer`**.
+Zenject is a **peer** dependency (not listed in `package.json`):
 
-| | Required | What matters |
-|---|----------|----------------|
-| **Zenject-compatible DI** | **Yes** | Assembly definition **name** = `Zenject` |
-| **UniTask** | Optional | Only for `DelaySecondsCommand` (`com.cysharp.unitask`) |
+- UPM cannot pull another git package as a dependency of a package.
+- Projects use different Zenject / Extenject installs and forks.
 
-**Why nothing is listed under `package.json` → `dependencies`:**
-
-1. UPM **cannot** pull git packages as *dependencies of another package* — only as entries in the **project** `Packages/manifest.json`.
-2. Projects disagree on *which* fork they use (classic Plugins drop, Extenject UPM, private fork). Pinning one would break the others.
-3. The real contract is the **assembly name** `Zenject`, not a UPM package id.
-
-If your DI already lives under `Assets/Plugins` (or any UPM path) with asmdef name **`Zenject`**, you’re done on that side.
-
-<details>
-<summary>Examples if you still need to install DI (optional — use what your team already uses)</summary>
-
-**Classic:** import Zenject / Extenject into `Assets/Plugins` so the asmdef is named `Zenject`.
-
-**UPM git (one common Extenject layout):**
-
-```json
-"com.svermeulen.extenject": "https://github.com/Mathijs-Bakker/Extenject.git?path=/UnityProject/Assets/Plugins/Zenject#9.2.0"
-```
-
-Any other source is fine as long as the compiled assembly is still called **`Zenject`**.
-
-</details>
+The contract is the assembly name **`Zenject`** (standard for stock Zenject, Extenject, and most forks). Commands use `SignalBus` and `DiContainer`.
 
 ---
 
-## Install this package
+## Install
 
 Package Manager → **+** → **Add package from git URL**:
 
 ```text
-https://github.com/KeybladerV/unity-pipelined-commands.git#v0.1.0
+https://github.com/KeybladerV/unity-pipelined-commands.git#v0.1.2
 ```
 
-Or in `Packages/manifest.json`:
+Or in the project `Packages/manifest.json`:
 
 ```json
 {
   "dependencies": {
-    "com.keybladerv.pipelined-commands": "https://github.com/KeybladerV/unity-pipelined-commands.git#v0.1.0"
+    "com.keybladerv.pipelined-commands": "https://github.com/KeybladerV/unity-pipelined-commands.git#v0.1.2"
   }
 }
 ```
 
-Prefer a **tag** (`#v0.1.0`) over a floating branch. Host assemblies that define commands must reference asmdef **`PipelinedCommands`**.
+Pin a **tag** (`#v0.1.2`), not a floating branch.
+
+Host game assemblies that define commands must **reference** the asmdef **`PipelinedCommands`**.
+
+> **Note:** This package commits Unity `.meta` files. Git UPM packages land in PackageCache as immutable; without metas, Unity ignores all scripts.
+
+See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ---
 
@@ -75,10 +65,9 @@ Prefer a **tag** (`#v0.1.0`) over a floating branch. Host assemblies that define
 using Zenject;
 using PipelinedCommands;
 
-// ProjectContext / SceneContext — once per container that runs commands
 SignalBusInstaller.Install(Container);
 
-// Every signal type you Bind / Fire / WaitSignal on
+// Declare every signal type used with Bind / Fire / WaitSignalCommand
 Container.DeclareSignal<LevelWonSignal>();
 Container.DeclareSignal<LevelFlowDoneSignal>();
 
@@ -87,7 +76,7 @@ Container.BindInterfacesAndSelfTo<CommandMap>().AsSingle();
 
 ---
 
-## Usage
+## Quick start
 
 ```csharp
 using PipelinedCommands;
@@ -95,35 +84,75 @@ using PipelinedCommands.Utility;
 
 // Signal → pipeline
 _commands.Bind<LevelWonSignal>()
-    .To0<SaveCommand>()
-    .To1<DelaySecondsCommand, float>(1f) // needs UniTask in the project
-    .To0<ShowInterstitialCommand>()
+    .To0<SaveProgressCommand>()
+    .To1<DelaySecondsCommand, float>(1f)   // requires UniTask in the project
+    .To0<ShowInterstitialCommand>()          // your game command, not in this package
     .InSequence()
     .OnCompleteFire<LevelFlowDoneSignal>();
 
-// Imperative pipeline (no signal)
+// Imperative pipeline (no trigger signal)
 _commands.Flow()
-    .To0<BootA>()
-    .To0<BootB>()
+    .To0<BootStepACommand>()
+    .To0<BootStepBCommand>()
     .InSequence()
     .Execute();
 
-// Fire with the host SignalBus
+// Trigger
 _signalBus.Fire(new LevelWonSignal());
 ```
 
-Game-specific commands (ads, UI, missions, …) stay in **your** assemblies; this package only provides the map, pooling, and utilities.
+### Command skeleton
+
+```csharp
+using PipelinedCommands;
+
+public sealed class SaveProgressCommand : Command
+{
+    // Zenject injects via constructor or [Inject]
+
+    public override void Execute()
+    {
+        // Sync work — completes when Execute returns.
+
+        // Async:
+        // Retain();
+        // ... later ...
+        // Release();  // or Fail(ex) / Break();
+    }
+}
+
+public sealed class HandleWonCommand : Command<LevelWonSignal>
+{
+    public override void Execute(LevelWonSignal signal) { /* ... */ }
+}
+```
+
+### Binding API (essentials)
+
+| API | Meaning |
+|-----|---------|
+| `To0<TCommand>()` | Parameterless command |
+| `To1<TCommand>()` | `Command<TSignal>` — payload is the signal |
+| `To1<TCommand, TArg>(arg)` | Fixed argument |
+| `InSequence()` / `InParallel()` | Execution mode |
+| `Once()` / `Once(OnceBehavior)` | Unbind after complete / fail / break |
+| `When(...)` / `TriggerCondition(...)` | Gate the binding |
+| `OnComplete` / `OnFail` / `OnBreak` | Callbacks |
+| `OnCompleteFire<T>()` / `OnFailFire<T>()` / `OnBreakFire<T>()` | Fire follow-up signals |
+| `And<TOtherSignal>()` | Same chain on another signal type |
+| `Flow()` / `Flow<T1>()` / … | Imperative pipelines |
+
+Game-specific commands (ads, UI, gameplay) stay in **your** assemblies.
 
 ---
 
-## Versioning
+## Utilities
 
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
-
-Keep `package.json` → `"version"` aligned with the tag (`0.1.0` ↔ `v0.1.0`).
+| Type | Assembly | Notes |
+|------|----------|--------|
+| `InvokeActionCommand` | `PipelinedCommands` | `Command<Action>` — invoke a stored action |
+| `WaitSignalCommand<T>` | `PipelinedCommands` | Retain until signal `T` fires once |
+| `DelaySecondsCommand` | `PipelinedCommands.UniTask` | Needs UniTask in the project |
 
 ---
 

@@ -1,6 +1,6 @@
 {
   "name": "com.keybladerv.pipelined-commands",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "displayName": "Pipelined Commands",
   "description": "PostMVC-style command pipelines for Unity. Peer-depends on a Zenject-compatible DI (assembly name Zenject) and SignalBus. Sequence/parallel, Retain/Release, pooling.",
   "unity": "2021.3",

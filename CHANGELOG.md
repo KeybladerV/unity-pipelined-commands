@@ -1,3 +1,8 @@
+## [0.1.2] - 2026-07-18
+
+### Fixed
+- `CommandBase.IsResolved` is `protected internal` so `CommandMap` (same assembly) can read it; subclasses in `PipelinedCommands.UniTask` still can too.
+
 ## [0.1.1] - 2026-07-18
 
 ### Fixed
@@ -17,5 +22,5 @@
 - UPM: `com.keybladerv.pipelined-commands` (install via git URL)
 - Display name: **Pipelined Commands**
 - Root assembly / namespace: `PipelinedCommands`
-- No hard UPM dependency on Zenject/Extenject â€” peer on assembly name `Zenject`
+- No hard UPM dependency on Zenject/Extenject Ã¢â‚¬â€ peer on assembly name `Zenject`
 - Repo: `https://github.com/KeybladerV/unity-pipelined-commands`

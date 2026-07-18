@@ -15,7 +15,7 @@ namespace PipelinedCommands
         internal int Index => _index;
         internal CommandBindingBase Binding => _binding;
         /// <summary>For async command code (e.g. after await).</summary>
-        protected bool IsResolved { get; private set; }
+        protected internal bool IsResolved { get; private set; }
 
         internal bool IsRetained { get; private set; }
         internal bool IsFailed { get; private set; }
@@ -45,7 +45,7 @@ namespace PipelinedCommands
 
         internal abstract void RunExecute();
 
-        /// <summary>Inject step parameters (0–3). Implemented by typed Command variants.</summary>
+        /// <summary>Inject step parameters (0â€“3). Implemented by typed Command variants.</summary>
         internal abstract void ApplyParams(object p1, object p2, object p3);
 
         internal virtual void ResetState()
@@ -128,7 +128,7 @@ namespace PipelinedCommands
         internal void FailInternal(Exception exception) => Fail(exception);
     }
 
-    /// <summary>Multi-retain handle: each Retain increments; Release decrements; zero → command Release.</summary>
+    /// <summary>Multi-retain handle: each Retain increments; Release decrements; zero â†’ command Release.</summary>
     public sealed class CommandRetainHandle
     {
         private readonly CommandBase _command;

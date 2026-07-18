@@ -1,0 +1,24 @@
+{
+  "name": "com.keybladerv.pipelined-commands",
+  "version": "0.1.0",
+  "displayName": "Pipelined Commands",
+  "description": "PostMVC-style command pipelines for Unity. Peer-depends on a Zenject-compatible DI (assembly name Zenject) and SignalBus. Sequence/parallel, Retain/Release, pooling.",
+  "unity": "2021.3",
+  "documentationUrl": "https://github.com/KeybladerV/unity-pipelined-commands",
+  "changelogUrl": "https://github.com/KeybladerV/unity-pipelined-commands/blob/main/CHANGELOG.md",
+  "licensesUrl": "https://github.com/KeybladerV/unity-pipelined-commands/blob/main/LICENSE",
+  "keywords": [
+    "commands",
+    "pipeline",
+    "zenject",
+    "extenject",
+    "signals",
+    "postmvc",
+    "architecture"
+  ],
+  "author": {
+    "name": "Valeriy Poliyanov",
+    "url": "https://github.com/KeybladerV"
+  },
+  "dependencies": {}
+}

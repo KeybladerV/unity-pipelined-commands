@@ -1,0 +1,25 @@
+{
+    "name": "PipelinedCommands.UniTask",
+    "rootNamespace": "PipelinedCommands.Utility",
+    "references": [
+        "PipelinedCommands",
+        "UniTask"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "PIPELINED_COMMANDS_UNITASK"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.cysharp.unitask",
+            "expression": "",
+            "define": "PIPELINED_COMMANDS_UNITASK"
+        }
+    ],
+    "noEngineReferences": false
+}
